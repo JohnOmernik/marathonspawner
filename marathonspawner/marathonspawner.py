@@ -23,6 +23,8 @@ class MarathonSpawner(Spawner):
 
     app_image = Unicode("jupyterhub/singleuser", config=True)
 
+    app_cmd = Unicode("jupyter notebook", config=True)
+
     app_prefix = Unicode(
         "jupyter",
         help=dedent(
@@ -240,6 +242,7 @@ class MarathonSpawner(Spawner):
 
         app_request = MarathonApp(
             id=self.container_name,
+            cmd=self.app_cmd,
             env=self.get_env(),
             cpus=self.cpu_limit,
             mem=mem_request,
