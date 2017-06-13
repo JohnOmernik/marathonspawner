@@ -319,7 +319,7 @@ class MarathonSpawner(Spawner):
 
         app_request = MarathonApp(
             id=self.container_name,
-            cmd=self.get_app_command()
+            cmd=self.get_app_command(),
             env=self.get_env(),
             cpus=self.cpu_limit,
             mem=mem_request,
