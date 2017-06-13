@@ -52,7 +52,7 @@ class MarathonSpawner(Spawner):
     ).tag(config=True)
 
 
-    no_user_file_fail = Boolean(
+    no_user_file_fail = Bool(
     True,
     help="Is zeta_user_file is provided, but can't be opened fail. (Default). False loads defaults and tries to spawn"
     ).tag(config=True)
