@@ -1,5 +1,6 @@
 import time
 import socket
+import json
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import urlparse, urlunparse
 
@@ -16,15 +17,23 @@ from marathon.models.constraint import MarathonConstraint
 from marathon.exceptions import NotFoundError
 from jupyterhub.spawner import Spawner
 
-from .volumenaming import default_format_volume_name
+# Updates the volume name to replace {username} with the actual user at run time
+def default_format_volume_name(template, spawner):
+    if template is None:
+        return None
+    return template.format(username=spawner.user.name)
 
 
 class MarathonSpawner(Spawner):
 
+
+    # Load the app image
     app_image = Unicode("jupyterhub/singleuser", config=True)
 
+    # The command to run 
     app_cmd = Unicode("jupyter notebook", config=True)
 
+    # This is the prefix in Martahon 
     app_prefix = Unicode(
         "jupyter",
         help=dedent(
@@ -35,13 +44,33 @@ class MarathonSpawner(Spawner):
         )
     ).tag(config=True)
 
+
+    # zeta_user_file are the users and their custom settings for installation in Zeta Architechure. If this is blank, defaults from Jupyter Hub are used for Mem, CPU, Ports, Image. If this is not blank, we will read from that file
+    zeta_user_file = Unicode(
+    "", 
+    help="Path to json file that includes users and per user settings"
+    ).tag(config=True)
+
+
+    no_user_file_fail = Boolean(
+    True,
+    help="Is zeta_user_file is provided, but can't be opened fail. (Default). False loads defaults and tries to spawn"
+    ).tag(config=True)
+
+    # Marathon Server
     marathon_host = Unicode(
         u'',
         help="Hostname of Marathon server").tag(config=True)
 
+    # Constraints in Marathon
     marathon_constraints = List(
         [],
         help='Constraints to be passed through to Marathon').tag(config=True)
+
+    # Shared Notebook location
+    shared_notebook_dir = Unicode(
+    '', help="Shared Notebook location that users will get a link to in their notebook location - can be blank"
+    ).tag(config=True)
 
     ports = List(
         [8888],
@@ -104,6 +133,45 @@ class MarathonSpawner(Spawner):
     def __init__(self, *args, **kwargs):
         super(MarathonSpawner, self).__init__(*args, **kwargs)
         self.marathon = MarathonClient(self.marathon_host)
+        if self.zeta_user_file != "":
+            try:
+                j = open(zeta_user_file, "r")
+                user_file = j.read()
+                j.close()
+                user_ar = []
+                for x in user_file.split("\n"):
+                    if x.strip().find("#") != 0 and x.strip() != "":
+                        y = json.loads(x)
+                        if y['username'] = self.user.name
+                            user_ar = y
+                            break
+                if len(user_ar) == 0:
+                    self.log.error("Could not find current use in zeta_user_file %s - Not Spawning"  % self.zeta_user_file)
+                    if self.no_user_file_fail == True:
+                        raise
+
+                self.user_list = user_ar
+                print("User List identified and loaded, setting values to %s" % user_ar)
+                self.cpu_limit = user_ar['cpu_limit']
+                self.mem_limit = user_ar['mem_limit']
+                self.user_ssh_port = user_ar['user_ssh_port']
+                self.user_web_port = user_ar['user_web_port']
+                self.network_mode = user_ar['network_mode']
+                self.app_image = user_ar['app_image']
+                self.marathon_constraints = user_ar['marathon_constraints']
+                if self.network_mode == "HOST":
+                    self.ports = []
+                else:
+                    self.ports.append(self.user_ssh_port)
+                    self.ports.append(self.user_web_port)
+                print("User List Loaded!")
+
+            # { "user": "username", "cpu_limit": "1", "mem_limit": "2G", "user_ssh_port": 10500, "user_web_port:" 10400, "network_mode": "BRIDGE", "app_image": "$APP_IMG", "marathon_constraints": []}
+
+            except:
+                self.log.error("Could not find or open zeta_user_file: %s" % self.zeta_user_file)
+                if self.no_user_file_fail == True:
+                    raise
 
     @property
     def container_name(self):
@@ -140,6 +208,13 @@ class MarathonSpawner(Spawner):
                 mv.external['name'] = self.format_volume_name(mv.external['name'], self)
             volumes.append(mv)
         return volumes
+
+    def get_app_cmd(self):
+        retval = self.app_cmd.replace("{username}", self.user.name)
+        retval = retval.replace("{userwebport}", self.user_web_port)
+        retval = retval.replace("{usersshport}", self.user_ssh_port)
+        return retval
+
 
     def get_port_mappings(self):
         port_mappings = []
@@ -210,6 +285,8 @@ class MarathonSpawner(Spawner):
             JPY_COOKIE_NAME=self.user.server.cookie_name,
             JPY_BASE_URL=self.user.server.base_url,
             JPY_HUB_PREFIX=self.hub.server.base_url,
+            JPY_USER_WEB_PORT=self.user_web_port, 
+            JPY_USER_SSH_PORT=self.user_ssh_port
         ))
 
         if self.notebook_dir:
@@ -242,7 +319,7 @@ class MarathonSpawner(Spawner):
 
         app_request = MarathonApp(
             id=self.container_name,
-            cmd=self.app_cmd,
+            cmd=self.get_app_command()
             env=self.get_env(),
             cpus=self.cpu_limit,
             mem=mem_request,
