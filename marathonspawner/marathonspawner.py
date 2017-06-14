@@ -307,6 +307,7 @@ class MarathonSpawner(Spawner):
                 self.marathon_constraints = user_ar['marathon_constraints']
                 self.ports.append(self.user_web_port)
                 self.ports.append(self.user_ssh_port)
+                self.volumes = self.volumes + user_ar['volumes']
                 print("User List Loaded!")
 
             # { "user": "username", "cpu_limit": "1", "mem_limit": "2G", "user_ssh_port": 10500, "user_web_port:" 10400, "network_mode": "BRIDGE", "app_image": "$APP_IMG", "marathon_constraints": []}
