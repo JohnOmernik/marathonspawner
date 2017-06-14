@@ -44,8 +44,8 @@ class MarathonSpawner(Spawner):
         )
     ).tag(config=True)
 
-    user_web_port = Interger(0, help="Port that the Notebook is listening on").tag(config=True)
-    user_ssh_port = Interger(0, help="SSH Port that the container is listening on").tag(config=True)
+    user_web_port = Integer(0, help="Port that the Notebook is listening on").tag(config=True)
+    user_ssh_port = Integer(0, help="SSH Port that the container is listening on").tag(config=True)
     # zeta_user_file are the users and their custom settings for installation in Zeta Architechure. If this is blank, defaults from Jupyter Hub are used for Mem, CPU, Ports, Image. If this is not blank, we will read from that file
     zeta_user_file = Unicode(
     "",
