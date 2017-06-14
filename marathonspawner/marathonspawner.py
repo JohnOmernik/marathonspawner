@@ -219,6 +219,7 @@ class MarathonSpawner(Spawner):
             port = app_info.tasks[0].ports[0]
         else:
             port = self.user_web_port
+
         return (ip, port)
 
     @run_on_executor
@@ -331,6 +332,7 @@ class MarathonSpawner(Spawner):
             env=self.get_env(),
             cpus=self.cpu_limit,
             mem=mem_request,
+            ports=self.ports,
             container=app_container,
             constraints=self.get_constraints(),
             health_checks=self.get_health_checks(),
