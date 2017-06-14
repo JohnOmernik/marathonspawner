@@ -173,8 +173,8 @@ class MarathonSpawner(Spawner):
 
     def get_app_cmd(self):
         retval = self.app_cmd.replace("{username}", self.user.name)
-        retval = retval.replace("{userwebport}", self.user_web_port)
-        retval = retval.replace("{usersshport}", self.user_ssh_port)
+        retval = retval.replace("{userwebport}", str(self.user_web_port))
+        retval = retval.replace("{usersshport}", str(self.user_ssh_port))
         return retval
 
 
