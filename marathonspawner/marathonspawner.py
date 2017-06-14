@@ -150,14 +150,25 @@ class MarathonSpawner(Spawner):
 
     def get_health_checks(self):
         health_checks = []
-        health_checks.append(MarathonHealthCheck(
-            protocol='TCP',
-            port_index=0,
-            grace_period_seconds=300,
-            interval_seconds=60,
-            timeout_seconds=20,
-            max_consecutive_failures=0
-            ))
+        if self.network_mode == "HOST":
+            health_checks.append(MarathonHealthCheck(
+                protocol='TCP',
+                port=self.user_web_port,
+                grace_period_seconds=300,
+                interval_seconds=60,
+                timeout_seconds=20,
+                max_consecutive_failures=0
+                ))
+        else:
+            health_checks.append(MarathonHealthCheck(
+                protocol='TCP',
+                port_index=0,
+                grace_period_seconds=300,
+                interval_seconds=60,
+                timeout_seconds=20,
+                max_consecutive_failures=0
+                ))
+
         return health_checks
 
     def get_volumes(self):
@@ -332,7 +343,6 @@ class MarathonSpawner(Spawner):
             env=self.get_env(),
             cpus=self.cpu_limit,
             mem=mem_request,
-            ports=self.ports,
             container=app_container,
             constraints=self.get_constraints(),
             health_checks=self.get_health_checks(),
