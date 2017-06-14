@@ -147,7 +147,7 @@ class MarathonSpawner(Spawner):
                             user_ar = y
                             break
                 if len(user_ar) == 0:
-                    self.log.error("Could not find current use in zeta_user_file %s - Not Spawning"  % self.zeta_user_file)
+                    self.log.error("Could not find current user %s in zeta_user_file %s - Not Spawning"  % (self.user.name, self.zeta_user_file))
                     if self.no_user_file_fail == True:
                         raise
 
