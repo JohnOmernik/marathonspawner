@@ -180,14 +180,15 @@ class MarathonSpawner(Spawner):
 
     def get_port_mappings(self):
         port_mappings = []
-        for p in self.ports:
-            port_mappings.append(
-                MarathonContainerPortMapping(
-                    container_port=p,
-                    host_port=0,
-                    protocol='tcp'
+        if self.network_mode == "BRIDGE":
+            for p in self.ports:
+                port_mappings.append(
+                    MarathonContainerPortMapping(
+                        container_port=p,
+                        host_port=0,
+                        protocol='tcp'
+                    )
                 )
-            )
         return port_mappings
 
     def get_constraints(self):
@@ -292,11 +293,8 @@ class MarathonSpawner(Spawner):
                 self.network_mode = user_ar['network_mode']
                 self.app_image = user_ar['app_image']
                 self.marathon_constraints = user_ar['marathon_constraints']
-                if self.network_mode == "HOST":
-                    self.ports = []
-                else:
-                    self.ports.append(self.user_web_port)
-                    self.ports.append(self.user_ssh_port)
+                self.ports.append(self.user_web_port)
+                self.ports.append(self.user_ssh_port)
                 print("User List Loaded!")
 
             # { "user": "username", "cpu_limit": "1", "mem_limit": "2G", "user_ssh_port": 10500, "user_web_port:" 10400, "network_mode": "BRIDGE", "app_image": "$APP_IMG", "marathon_constraints": []}
