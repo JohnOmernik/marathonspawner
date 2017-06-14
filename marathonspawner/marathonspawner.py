@@ -214,7 +214,11 @@ class MarathonSpawner(Spawner):
     def get_ip_and_port(self, app_info):
         assert len(app_info.tasks) == 1
         ip = socket.gethostbyname(app_info.tasks[0].host)
-        return (ip, app_info.tasks[0].ports[0])
+        if self.network_mode == "BRIDGE";
+            port = app_info.tasks[0].ports[0]
+        else:
+            port = self.user_web_port
+        return (ip, port)
 
     @run_on_executor
     def get_app_info(self, app_name):
@@ -291,8 +295,8 @@ class MarathonSpawner(Spawner):
                 if self.network_mode == "HOST":
                     self.ports = []
                 else:
-                    self.ports.append(self.user_ssh_port)
                     self.ports.append(self.user_web_port)
+                    self.ports.append(self.user_ssh_port)
                 print("User List Loaded!")
 
             # { "user": "username", "cpu_limit": "1", "mem_limit": "2G", "user_ssh_port": 10500, "user_web_port:" 10400, "network_mode": "BRIDGE", "app_image": "$APP_IMG", "marathon_constraints": []}
