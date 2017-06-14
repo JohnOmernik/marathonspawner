@@ -7,7 +7,7 @@ from urllib.parse import urlparse, urlunparse
 from textwrap import dedent
 from tornado import gen
 from tornado.concurrent import run_on_executor
-from traitlets import Any, Integer, List, Unicode, default
+from traitlets import Any, Integer, List, Unicode, default, Bool
 
 from marathon import MarathonClient
 from marathon.models.app import MarathonApp, MarathonHealthCheck
