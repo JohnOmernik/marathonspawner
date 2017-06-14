@@ -134,44 +134,6 @@ class MarathonSpawner(Spawner):
     def __init__(self, *args, **kwargs):
         super(MarathonSpawner, self).__init__(*args, **kwargs)
         self.marathon = MarathonClient(self.marathon_host)
-        if self.zeta_user_file != "":
-            try:
-                j = open(self.zeta_user_file, "r")
-                user_file = j.read()
-                j.close()
-                user_ar = {}
-                for x in user_file.split("\n"):
-                    if x.strip().find("#") != 0 and x.strip() != "":
-                        y = json.loads(x)
-                        if y['user'] == self.user.name:
-                            user_ar = y
-                            break
-                if len(user_ar) == 0:
-                    self.log.error("Could not find current user %s in zeta_user_file %s - Not Spawning"  % (self.user.name, self.zeta_user_file))
-                    if self.no_user_file_fail == True:
-                        raise Exception('no_user_file_fail is True, will not go on')
-
-                print("User List identified and loaded, setting values to %s" % user_ar)
-                self.cpu_limit = user_ar['cpu_limit']
-                self.mem_limit = user_ar['mem_limit']
-                self.user_ssh_port = user_ar['user_ssh_port']
-                self.user_web_port = user_ar['user_web_port']
-                self.network_mode = user_ar['network_mode']
-                self.app_image = user_ar['app_image']
-                self.marathon_constraints = user_ar['marathon_constraints']
-                if self.network_mode == "HOST":
-                    self.ports = []
-                else:
-                    self.ports.append(self.user_ssh_port)
-                    self.ports.append(self.user_web_port)
-                print("User List Loaded!")
-
-            # { "user": "username", "cpu_limit": "1", "mem_limit": "2G", "user_ssh_port": 10500, "user_web_port:" 10400, "network_mode": "BRIDGE", "app_image": "$APP_IMG", "marathon_constraints": []}
-
-            except:
-                self.log.error("Could not find or open zeta_user_file: %s" % self.zeta_user_file)
-                if self.no_user_file_fail == True:
-                    raise Exception("Could not open file and config says don't go on")
 
     @property
     def container_name(self):
@@ -299,8 +261,52 @@ class MarathonSpawner(Spawner):
         env['JPY_HUB_API_URL'] = hub_api_url
         return env
 
+    def update_users(self):
+        # No changes if the zeta_user_file is blank
+        if self.zeta_user_file != "":
+            try:
+                j = open(self.zeta_user_file, "r")
+                user_file = j.read()
+                j.close()
+                user_ar = {}
+                for x in user_file.split("\n"):
+                    if x.strip().find("#") != 0 and x.strip() != "":
+                        y = json.loads(x)
+                        if y['user'] == self.user.name:
+                            user_ar = y
+                            break
+                if len(user_ar) == 0:
+                    self.log.error("Could not find current user %s in zeta_user_file %s - Not Spawning"  % (self.user.name, self.zeta_user_file))
+                    if self.no_user_file_fail == True:
+                        raise Exception('no_user_file_fail is True, will not go on')
+
+                print("User List identified and loaded, setting values to %s" % user_ar)
+                self.cpu_limit = user_ar['cpu_limit']
+                self.mem_limit = user_ar['mem_limit']
+                self.user_ssh_port = user_ar['user_ssh_port']
+                self.user_web_port = user_ar['user_web_port']
+                self.network_mode = user_ar['network_mode']
+                self.app_image = user_ar['app_image']
+                self.marathon_constraints = user_ar['marathon_constraints']
+                if self.network_mode == "HOST":
+                    self.ports = []
+                else:
+                    self.ports.append(self.user_ssh_port)
+                    self.ports.append(self.user_web_port)
+                print("User List Loaded!")
+
+            # { "user": "username", "cpu_limit": "1", "mem_limit": "2G", "user_ssh_port": 10500, "user_web_port:" 10400, "network_mode": "BRIDGE", "app_image": "$APP_IMG", "marathon_constraints": []}
+
+            except:
+                self.log.error("Could not find or open zeta_user_file: %s" % self.zeta_user_file)
+                if self.no_user_file_fail == True:
+                    raise Exception("Could not open file and config says don't go on")
+
     @gen.coroutine
     def start(self):
+        # First make a quick call to determine if user info was updated
+        self.update_users()
+        # Go on to start the notebook
         docker_container = MarathonDockerContainer(
             image=self.app_image,
             network=self.network_mode,
