@@ -139,7 +139,7 @@ class MarathonSpawner(Spawner):
                 j = open(self.zeta_user_file, "r")
                 user_file = j.read()
                 j.close()
-                user_ar = []
+                user_ar = {}
                 for x in user_file.split("\n"):
                     if x.strip().find("#") != 0 and x.strip() != "":
                         y = json.loads(x)
@@ -149,9 +149,8 @@ class MarathonSpawner(Spawner):
                 if len(user_ar) == 0:
                     self.log.error("Could not find current user %s in zeta_user_file %s - Not Spawning"  % (self.user.name, self.zeta_user_file))
                     if self.no_user_file_fail == True:
-                        raise
+                        raise Exception('no_user_file_fail is True, will not go on')
 
-                self.user_list = user_ar
                 print("User List identified and loaded, setting values to %s" % user_ar)
                 self.cpu_limit = user_ar['cpu_limit']
                 self.mem_limit = user_ar['mem_limit']
@@ -172,7 +171,7 @@ class MarathonSpawner(Spawner):
             except:
                 self.log.error("Could not find or open zeta_user_file: %s" % self.zeta_user_file)
                 if self.no_user_file_fail == True:
-                    raise
+                    raise Exception("Could not open file and config says don't go on")
 
     @property
     def container_name(self):
