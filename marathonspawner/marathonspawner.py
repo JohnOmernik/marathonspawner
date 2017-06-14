@@ -143,7 +143,7 @@ class MarathonSpawner(Spawner):
                 for x in user_file.split("\n"):
                     if x.strip().find("#") != 0 and x.strip() != "":
                         y = json.loads(x)
-                        if y['username'] == self.user.name:
+                        if y['user'] == self.user.name:
                             user_ar = y
                             break
                 if len(user_ar) == 0:
