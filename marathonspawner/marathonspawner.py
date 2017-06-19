@@ -63,6 +63,10 @@ class MarathonSpawner(Spawner):
         u'',
         help="Hostname of Marathon server").tag(config=True)
 
+    custom_env = List(
+        [],
+        help='Additional ENVs to add to the default. Format is a list of 1 record dictionary. [{key:val}];
+
     # Constraints in Marathon
     marathon_constraints = List(
         [],
@@ -276,6 +280,13 @@ class MarathonSpawner(Spawner):
         else:
             hub_api_url = self.hub.api_url
         env['JPY_HUB_API_URL'] = hub_api_url
+
+        for x in self.custom_env:
+            for k,v in x:
+                env[k] = str(v)
+
+
+
         return env
 
     def update_users(self):
@@ -307,6 +318,7 @@ class MarathonSpawner(Spawner):
                 self.marathon_constraints = user_ar['marathon_constraints']
                 self.ports.append(self.user_web_port)
                 self.ports.append(self.user_ssh_port)
+                self.custom_env = self.custom_env + user_ar['custom_env']
                 self.volumes = self.volumes + user_ar['volumes']
                 print("User List Loaded!")
 
