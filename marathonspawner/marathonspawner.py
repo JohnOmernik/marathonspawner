@@ -65,7 +65,8 @@ class MarathonSpawner(Spawner):
 
     custom_env = List(
         [],
-        help='Additional ENVs to add to the default. Format is a list of 1 record dictionary. [{key:val}];
+        help='Additional ENVs to add to the default. Format is a list of 1 record dictionary. [{key:val}]'
+       ).tag(config=True)
 
     # Constraints in Marathon
     marathon_constraints = List(
