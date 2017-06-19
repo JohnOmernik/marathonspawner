@@ -283,7 +283,7 @@ class MarathonSpawner(Spawner):
         env['JPY_HUB_API_URL'] = hub_api_url
 
         for x in self.custom_env:
-            for k,v in x:
+            for k,v in x.items():
                 env[k] = str(v)
 
 
