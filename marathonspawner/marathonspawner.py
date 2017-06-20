@@ -316,7 +316,7 @@ class MarathonSpawner(Spawner):
                 self.mem_limit = user_ar['mem_limit']
                 self.user_ssh_port = user_ar['user_ssh_port']
                 self.user_web_port = user_ar['user_web_port']
-                seld.user_ssh_host = user_ar['user_ssh_host']
+                self.user_ssh_host = user_ar['user_ssh_host']
                 self.network_mode = user_ar['network_mode']
                 self.app_image = user_ar['app_image']
                 self.marathon_constraints = user_ar['marathon_constraints']
