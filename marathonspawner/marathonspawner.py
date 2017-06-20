@@ -46,6 +46,7 @@ class MarathonSpawner(Spawner):
 
     user_web_port = Integer(0, help="Port that the Notebook is listening on").tag(config=True)
     user_ssh_port = Integer(0, help="SSH Port that the container is listening on").tag(config=True)
+    user_ssh_host = Unicode('', help="Hostname of the ssh container").tag(config=True)
     # zeta_user_file are the users and their custom settings for installation in Zeta Architechure. If this is blank, defaults from Jupyter Hub are used for Mem, CPU, Ports, Image. If this is not blank, we will read from that file
     zeta_user_file = Unicode(
     "",
@@ -270,7 +271,8 @@ class MarathonSpawner(Spawner):
             JPY_BASE_URL=self.user.server.base_url,
             JPY_HUB_PREFIX=self.hub.server.base_url,
             JPY_USER_WEB_PORT=str(self.user_web_port),
-            JPY_USER_SSH_PORT=str(self.user_ssh_port)
+            JPY_USER_SSH_PORT=str(self.user_ssh_port),
+            JPY_USER_SSH_HOST=str(self.user_ssh_host)
         ))
 
         if self.notebook_dir:
