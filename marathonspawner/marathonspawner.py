@@ -373,10 +373,12 @@ class MarathonSpawner(Spawner):
 
         if self.user_ssh_hagroup != "":
             labels = {"HAPROXY_GROUP": self.user_ssh_hagroup, "HA_EDGE_CONF": "1"}
-            portDefinitions = [{"port": user_ssh_port, "protocol": "tcp"}]
+            myports = [self.user_ssh_port]
+#            portDefinitions = [{"port": user_ssh_port, "protocol": "tcp"}]
         else:
             labels = {}
-            portDefinitions = []
+            myports = []
+#            portDefinitions = []
 
 
         app_request = MarathonApp(
@@ -390,7 +392,7 @@ class MarathonSpawner(Spawner):
             health_checks=self.get_health_checks(),
             instances=1,
             labels=labels,
-            portDefinitions=portDefinitions
+            ports=myports
             )
 
         app = self.marathon.create_app(self.container_name, app_request)
