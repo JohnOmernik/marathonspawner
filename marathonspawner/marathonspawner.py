@@ -372,8 +372,14 @@ class MarathonSpawner(Spawner):
             mem_request = 1024.0
 
         if self.user_ssh_hagroup != "":
-            labels = {"HAPROXY_GROUP": self.user_ssh_hagroup, "HA_EDGE_CONF": "1"}
             myports = [self.user_ssh_port]
+            cname = self.container_name
+            lname = cname.split("/")
+            rname = list(reversed(lname))
+            hname = "-".join(rname)
+            full_hname = hname + ".marathon.slave.mesos"
+            backend = "server %s %s:%s" % (hname, full_hname, self.user_ssh_port)
+            labels = {"HAPROXY_GROUP": self.user_ssh_hagroup, "HA_EDGE_CONF": "1", "HAPROXY_0_BACKEND_SERVER_OPTIONS": backend}
 #            portDefinitions = [{"port": user_ssh_port, "protocol": "tcp"}]
         else:
             labels = {}
