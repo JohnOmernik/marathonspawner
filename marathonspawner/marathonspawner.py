@@ -204,7 +204,11 @@ class MarathonSpawner(Spawner):
     def get_app_cmd(self):
         retval = self.app_cmd.replace("{username}", self.user.name)
         retval = retval.replace("{userwebport}", str(self.user_web_port))
-        retval = retval.replace("{usersshport}", str(self.user_ssh_port))
+
+        if self.user_ssh_hagroup != "":
+            retval = retval.replace("{usersshport}", "$PORT0")
+        else:
+            retval = retval.replace("{usersshport}", str(self.user_ssh_port))
         return retval
 
 
@@ -373,23 +377,10 @@ class MarathonSpawner(Spawner):
 
         if self.user_ssh_hagroup != "":
             myports = [self.user_ssh_port]
-            cname = self.container_name
-            lname = cname.split("/")
-            rname = list(reversed(lname))
-            uname = []
-            for x in rname:
-                if x.strip() != "":
-                    uname.append(x)
-            hname = "-".join(uname)
-            full_hname = hname + ".marathon.slave.mesos"
-            backend = "server %s %s:%s" % (hname, full_hname, self.user_ssh_port)
-            labels = {"HAPROXY_GROUP": self.user_ssh_hagroup, "HA_EDGE_CONF": "1", "HAPROXY_0_BACKEND_SERVER_OPTIONS": backend}
-#            portDefinitions = [{"port": user_ssh_port, "protocol": "tcp"}]
+            labels = {"HAPROXY_GROUP": self.user_ssh_hagroup, "HA_EDGE_CONF": "1"}
         else:
             labels = {}
             myports = []
-#            portDefinitions = []
-
 
         app_request = MarathonApp(
             id=self.container_name,
