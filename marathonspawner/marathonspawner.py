@@ -47,6 +47,9 @@ class MarathonSpawner(Spawner):
     user_web_port = Integer(0, help="Port that the Notebook is listening on").tag(config=True)
     user_ssh_port = Integer(0, help="SSH Port that the container is listening on").tag(config=True)
     user_ssh_host = Unicode('', help="Hostname of the ssh container").tag(config=True)
+
+    user_ssh_hagroup = Unicode('', help="HAProxy group for ssh container port").tag(config=True)
+
     # zeta_user_file are the users and their custom settings for installation in Zeta Architechure. If this is blank, defaults from Jupyter Hub are used for Mem, CPU, Ports, Image. If this is not blank, we will read from that file
     zeta_user_file = Unicode(
     "",
@@ -186,7 +189,17 @@ class MarathonSpawner(Spawner):
             if mv.external and 'name' in mv.external:
                 mv.external['name'] = self.format_volume_name(mv.external['name'], self)
             volumes.append(mv)
-        return volumes
+        out_vols = []
+        dups = {}
+        #Remove Duplicates there should be only one container path point for container
+        for x in volumes:
+            if x.container_path in dups:
+                pass
+            else:
+                out_vols.append(x)
+                dups[x.container_path] = 1
+
+        return out_vols
 
     def get_app_cmd(self):
         retval = self.app_cmd.replace("{username}", self.user.name)
@@ -317,6 +330,10 @@ class MarathonSpawner(Spawner):
                 self.user_ssh_port = user_ar['user_ssh_port']
                 self.user_web_port = user_ar['user_web_port']
                 self.user_ssh_host = user_ar['user_ssh_host']
+                try:
+                    self.user_ssh_hagroup = user_ar['user_ssh_hagroup']
+                except:
+                    self.user_ssh_hagroup = ""
                 self.network_mode = user_ar['network_mode']
                 self.app_image = user_ar['app_image']
                 self.marathon_constraints = user_ar['marathon_constraints']
@@ -354,6 +371,14 @@ class MarathonSpawner(Spawner):
         else:
             mem_request = 1024.0
 
+        if self.user_ssh_hagroup != "":
+            labels = {"HAPROXY_GROUP": self.user_ssh_hagroup, "HA_EDGE_CONF": "1"}
+            portDefinitions = [{"port": user_ssh_port, "protocol": "tcp"}]
+        else:
+            labels = {}
+            portDefinitions = []
+
+
         app_request = MarathonApp(
             id=self.container_name,
             cmd=self.get_app_cmd(),
@@ -363,7 +388,9 @@ class MarathonSpawner(Spawner):
             container=app_container,
             constraints=self.get_constraints(),
             health_checks=self.get_health_checks(),
-            instances=1
+            instances=1,
+            labels=labels,
+            portDefinitions=portDefinitions
             )
 
         app = self.marathon.create_app(self.container_name, app_request)
