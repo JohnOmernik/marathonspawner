@@ -48,6 +48,8 @@ class MarathonSpawner(Spawner):
     user_ssh_port = Integer(0, help="SSH Port that the container is listening on").tag(config=True)
     user_ssh_host = Unicode('', help="Hostname of the ssh container").tag(config=True)
 
+    use_jupyterlab = Integer(0, help="Use Jupyterlab - Jupyterlab is 1 default is 0 or Jupyternotebook").tag(config=True)
+
     user_ssh_hagroup = Unicode('', help="HAProxy group for ssh container port").tag(config=True)
 
     # zeta_user_file are the users and their custom settings for installation in Zeta Architechure. If this is blank, defaults from Jupyter Hub are used for Mem, CPU, Ports, Image. If this is not blank, we will read from that file
@@ -204,6 +206,8 @@ class MarathonSpawner(Spawner):
     def get_app_cmd(self):
         retval = self.app_cmd.replace("{username}", self.user.name)
         retval = retval.replace("{userwebport}", str(self.user_web_port))
+        if self.use_jupyterlab == 1:
+            print("This is where I should do some thing if I want to run Jupyter lab")
 
         if self.user_ssh_hagroup != "":
             retval = retval.replace("{usersshport}", "$PORT0")
@@ -338,6 +342,12 @@ class MarathonSpawner(Spawner):
                     self.user_ssh_hagroup = user_ar['user_ssh_hagroup']
                 except:
                     self.user_ssh_hagroup = ""
+
+                try:
+                    self.use_jupyterlab = int(user_ar['use_jupyterlab'])
+                except:
+                    self.use_jupyterlab = 0
+
                 self.network_mode = user_ar['network_mode']
                 self.app_image = user_ar['app_image']
                 self.marathon_constraints = user_ar['marathon_constraints']
