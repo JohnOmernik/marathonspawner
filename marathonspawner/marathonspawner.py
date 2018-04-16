@@ -69,6 +69,16 @@ class MarathonSpawner(Spawner):
         u'',
         help="Hostname of Marathon server").tag(config=True)
 
+    marathon_user_name = Unicode(
+        None,
+        help='Marathon user name'
+    ).tag(config=True)
+
+    marathon_user_password = Unicode(
+        None,
+        help='Marathon user password'
+    ).tag(config=True)
+
     custom_env = List(
         [],
         help='Additional ENVs to add to the default. Format is a list of 1 record dictionary. [{key:val}]'
@@ -144,7 +154,9 @@ class MarathonSpawner(Spawner):
 
     def __init__(self, *args, **kwargs):
         super(MarathonSpawner, self).__init__(*args, **kwargs)
-        self.marathon = MarathonClient(self.marathon_host)
+        self.marathon = MarathonClient(self.marathon_host,
+                                       self.marathon_user_name,
+                                       self.marathon_user_password)
 
     @property
     def container_name(self):
