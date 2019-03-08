@@ -33,7 +33,7 @@ class MarathonSpawner(Spawner):
     # The command to run 
     app_cmd = Unicode("jupyter notebook", config=True)
 
-    # This is the prefix in Martahon 
+    # This is the prefix in Marathon
     app_prefix = Unicode(
         "jupyter",
         help=dedent(
@@ -70,12 +70,12 @@ class MarathonSpawner(Spawner):
         help="Hostname of Marathon server").tag(config=True)
 
     marathon_user_name = Unicode(
-        None,
+        u'',
         help='Marathon user name'
     ).tag(config=True)
 
     marathon_user_password = Unicode(
-        None,
+        u'',
         help='Marathon user password'
     ).tag(config=True)
 
