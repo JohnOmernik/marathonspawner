@@ -173,24 +173,14 @@ class MarathonSpawner(Spawner):
 
     def get_health_checks(self):
         health_checks = []
-        if self.network_mode == "HOST":
-            health_checks.append(MarathonHealthCheck(
-                protocol='TCP',
-                port=self.user_web_port,
-                grace_period_seconds=300,
-                interval_seconds=60,
-                timeout_seconds=20,
-                max_consecutive_failures=0
-                ))
-        else:
-            health_checks.append(MarathonHealthCheck(
-                protocol='TCP',
-                port_index=0,
-                grace_period_seconds=300,
-                interval_seconds=60,
-                timeout_seconds=20,
-                max_consecutive_failures=0
-                ))
+        health_checks.append(MarathonHealthCheck(
+            protocol='TCP',
+            port_index=0,
+            grace_period_seconds=300,
+            interval_seconds=60,
+            timeout_seconds=20,
+            max_consecutive_failures=0
+            ))
 
         return health_checks
 
