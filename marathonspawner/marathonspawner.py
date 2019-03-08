@@ -25,8 +25,6 @@ def default_format_volume_name(template, spawner):
 
 
 class MarathonSpawner(Spawner):
-
-
     # Load the app image
     app_image = Unicode("jupyterhub/singleuser", config=True)
 
@@ -78,6 +76,8 @@ class MarathonSpawner(Spawner):
         u'',
         help='Marathon user password'
     ).tag(config=True)
+
+    fetch = List([], help='Optional files to fetch').tag(config=True)
 
     custom_env = List(
         [],
@@ -415,7 +415,8 @@ class MarathonSpawner(Spawner):
             health_checks=self.get_health_checks(),
             instances=1,
             labels=labels,
-            ports=myports
+            ports=myports,
+            fetch=self.fetch,
             )
 
         app = self.marathon.create_app(self.container_name, app_request)
