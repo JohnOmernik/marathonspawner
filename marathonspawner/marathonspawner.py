@@ -255,11 +255,7 @@ class MarathonSpawner(Spawner):
     def get_ip_and_port(self, app_info):
         assert len(app_info.tasks) == 1
         ip = socket.gethostbyname(app_info.tasks[0].host)
-        if self.network_mode == "BRIDGE":
-            port = app_info.tasks[0].ports[0]
-        else:
-            port = self.user_web_port
-
+        port = app_info.tasks[0].ports[0]
         return (ip, port)
 
     @run_on_executor
