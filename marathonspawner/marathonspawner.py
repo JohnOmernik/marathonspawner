@@ -25,15 +25,13 @@ def default_format_volume_name(template, spawner):
 
 
 class MarathonSpawner(Spawner):
-
-
     # Load the app image
     app_image = Unicode("jupyterhub/singleuser", config=True)
 
     # The command to run 
     app_cmd = Unicode("jupyter notebook", config=True)
 
-    # This is the prefix in Martahon 
+    # This is the prefix in Marathon
     app_prefix = Unicode(
         "jupyter",
         help=dedent(
@@ -68,6 +66,18 @@ class MarathonSpawner(Spawner):
     marathon_host = Unicode(
         u'',
         help="Hostname of Marathon server").tag(config=True)
+
+    marathon_user_name = Unicode(
+        u'',
+        help='Marathon user name'
+    ).tag(config=True)
+
+    marathon_user_password = Unicode(
+        u'',
+        help='Marathon user password'
+    ).tag(config=True)
+
+    fetch = List([], help='Optional files to fetch').tag(config=True)
 
     custom_env = List(
         [],
@@ -144,7 +154,9 @@ class MarathonSpawner(Spawner):
 
     def __init__(self, *args, **kwargs):
         super(MarathonSpawner, self).__init__(*args, **kwargs)
-        self.marathon = MarathonClient(self.marathon_host)
+        self.marathon = MarathonClient(self.marathon_host,
+                                       self.marathon_user_name,
+                                       self.marathon_user_password)
 
     @property
     def container_name(self):
@@ -161,24 +173,14 @@ class MarathonSpawner(Spawner):
 
     def get_health_checks(self):
         health_checks = []
-        if self.network_mode == "HOST":
-            health_checks.append(MarathonHealthCheck(
-                protocol='TCP',
-                port=self.user_web_port,
-                grace_period_seconds=300,
-                interval_seconds=60,
-                timeout_seconds=20,
-                max_consecutive_failures=0
-                ))
-        else:
-            health_checks.append(MarathonHealthCheck(
-                protocol='TCP',
-                port_index=0,
-                grace_period_seconds=300,
-                interval_seconds=60,
-                timeout_seconds=20,
-                max_consecutive_failures=0
-                ))
+        health_checks.append(MarathonHealthCheck(
+            protocol='TCP',
+            port_index=0,
+            grace_period_seconds=300,
+            interval_seconds=60,
+            timeout_seconds=20,
+            max_consecutive_failures=0
+            ))
 
         return health_checks
 
@@ -253,11 +255,7 @@ class MarathonSpawner(Spawner):
     def get_ip_and_port(self, app_info):
         assert len(app_info.tasks) == 1
         ip = socket.gethostbyname(app_info.tasks[0].host)
-        if self.network_mode == "BRIDGE":
-            port = app_info.tasks[0].ports[0]
-        else:
-            port = self.user_web_port
-
+        port = app_info.tasks[0].ports[0]
         return (ip, port)
 
     @run_on_executor
@@ -403,7 +401,8 @@ class MarathonSpawner(Spawner):
             health_checks=self.get_health_checks(),
             instances=1,
             labels=labels,
-            ports=myports
+            ports=myports,
+            fetch=self.fetch,
             )
 
         app = self.marathon.create_app(self.container_name, app_request)
