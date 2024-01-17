@@ -1,0 +1,20 @@
+   "source": [
+    "source_df = dum_df\n",
+    "source_col = 'COLUMN_3'\n",
+    "\n",
+    "from wordcloud import WordCloud, STOPWORDS\n",
+    "%matplotlib inline\n",
+    "import matplotlib.pyplot as plt\n",
+    "def plot_cloud(wordcloud):\n",
+    "    plt.figure(figsize=(100,50))\n",
+    "    plt.imshow(wordcloud)\n",
+    "    plt.axis(\"off\")\n",
+    "\n",
+    "\n",
+    "word_cloud_list = [x.lower().strip() for x in source_df[source_col].tolist() if x is not None and pd.isna(x) == False]\n",
+    "full_text = \" \".join(word_cloud_list)\n",
+    "\n",
+    "wordcloud = WordCloud(width=2000, height=1000, random_state=1, background_color='black',\n",
+    "                      colormap='Pastel1', collocations=False, stopwords=STOPWORDS).generate(full_text)\n",
+    "plot_cloud(wordcloud)"
+   ]
